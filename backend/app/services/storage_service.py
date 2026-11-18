@@ -25,6 +25,21 @@ class StorageService:
         target_path = os.path.join(insp_dir, unique_filename)
 
         content = await file.read()
+
+        # Auto-convert iPhone HEIC/HEIF to JPEG so browser preview and canvas viewer render natively
+        if ext.lower() in [".heic", ".heif"]:
+            try:
+                import io
+                from PIL import Image as PILImage
+                import pillow_heif
+                pillow_heif.register_heif_opener()
+                pil_im = PILImage.open(io.BytesIO(content)).convert("RGB")
+                target_path = os.path.join(insp_dir, f"{uuid.uuid4()}.jpg")
+                pil_im.save(target_path, "JPEG", quality=92)
+                return target_path
+            except Exception:
+                pass
+
         with open(target_path, "wb") as out_file:
             out_file.write(content)
 

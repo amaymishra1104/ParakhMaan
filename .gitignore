@@ -54,10 +54,13 @@ frontend/.env.local
 *.sqlite3
 backend/storage/uploads/*
 !backend/storage/uploads/.gitkeep
+backend/storage/reports/*
+!backend/storage/reports/.gitkeep
 backend/storage/defect_samples/
 backend/storage/demo_defects/
 backend/storage/reports/defect_overlays/
 *.db.bak-*
+dataset_gdrive/
 
 # Logs
 logs

@@ -554,7 +554,7 @@ export default function DefectInspectionPage() {
         title="Live Defect Detection"
         surfaceOptions={['SURFACE', 'TOP', 'SIDE', 'EDGE']}
         frameHint={{ label: 'INSPECTION ZONE', hint: 'Keep the surface evenly lit and inside the frame' }}
-        liveAnalyze={(b64) => defectApi.analyzeLiveFrame(b64, { maxSide: 640 })}
+        liveAnalyze={(b64: string) => defectApi.analyzeLiveFrame(b64, { maxSide: 640 })}
       />
     </div>
   );

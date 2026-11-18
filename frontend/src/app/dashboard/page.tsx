@@ -13,6 +13,7 @@ import {
 export default function DashboardPage() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboard();
@@ -20,11 +21,13 @@ export default function DashboardPage() {
 
   const fetchDashboard = async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await api.getDashboardSummary();
       setSummary(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load dashboard:', err);
+      setError(err?.message || 'Failed to connect to backend service');
     } finally {
       setLoading(false);
     }
@@ -89,6 +92,25 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
+
+      {/* Backend Connection Alert */}
+      {error && (
+        <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between text-amber-900 text-xs shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+            <span>
+              <strong>Backend Connection Notice:</strong> {error}. Ensure FastAPI is running on <code className="px-1.5 py-0.5 bg-amber-100 rounded text-[11px] font-mono">http://127.0.0.1:8000</code>.
+            </span>
+          </div>
+          <button
+            onClick={fetchDashboard}
+            className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer ml-3 flex-shrink-0"
+          >
+            <RefreshCw className="w-3 h-3" />
+            <span>Retry</span>
+          </button>
+        </div>
+      )}
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -268,7 +290,7 @@ export default function DashboardPage() {
                             {viol.rule_id}
                           </span>
                           <span className="font-semibold text-[#000000]">
-                            {viol.field.replace('_', ' ').toUpperCase()}
+                            {(viol.field || viol.rule_id || 'VIOLATION').replace(/_/g, ' ').toUpperCase()}
                           </span>
                         </div>
                         <span className="font-bold text-[#dd5b00]">

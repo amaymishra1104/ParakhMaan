@@ -19,8 +19,8 @@ import {
   PLCStatus
 } from './types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
-const BACKEND_BASE = API_BASE.replace('/api/v1', '');
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+export const BACKEND_BASE = API_BASE.replace('/api/v1', '');
 
 export function getStorageUrl(filePath?: string): string {
   if (!filePath) return '';
@@ -31,35 +31,138 @@ export function getStorageUrl(filePath?: string): string {
 }
 
 async function postForm<T>(url: string, formData: FormData): Promise<T> {
-  return fetchJson<T>(url, { method: 'POST', body: formData });
+  let endpoint = url;
+  let isApiCall = false;
+  for (const prefix of [API_BASE, 'http://localhost:8000/api/v1', 'http://127.0.0.1:8000/api/v1', 'http://localhost:8080/api/v1', '/api/v1']) {
+    if (url.startsWith(prefix)) {
+      endpoint = url.substring(prefix.length);
+      isApiCall = true;
+      break;
+    }
+  }
+
+  if (!isApiCall) {
+    const res = await fetch(url, { method: 'POST', body: formData });
+    if (!res.ok) throw new Error(`HTTP Error ${res.status}: ${res.statusText}`);
+    return res.json() as Promise<T>;
+  }
+
+  const candidates: string[] = [];
+  if (process.env.NEXT_PUBLIC_API_URL) candidates.push(process.env.NEXT_PUBLIC_API_URL);
+  candidates.push('http://127.0.0.1:8000/api/v1');
+  candidates.push('http://localhost:8000/api/v1');
+  if (typeof window !== 'undefined') candidates.push('/api/v1');
+  const uniqueBases = Array.from(new Set(candidates));
+
+  let lastError: any = null;
+  for (const base of uniqueBases) {
+    const targetUrl = `${base}${endpoint}`;
+    try {
+      const res = await fetch(targetUrl, { method: 'POST', body: formData });
+      if (!res.ok) {
+        let errorDetail = `HTTP Error ${res.status}: ${res.statusText}`;
+        try {
+          const errJson = await res.json();
+          if (errJson.detail) {
+            errorDetail = typeof errJson.detail === 'string' ? errJson.detail : JSON.stringify(errJson.detail);
+          }
+        } catch {
+          // ignore
+        }
+        throw new Error(errorDetail);
+      }
+      return (await res.json()) as Promise<T>;
+    } catch (err: any) {
+      lastError = err;
+      if (err.message && err.message.startsWith('HTTP Error')) throw err;
+      continue;
+    }
+  }
+  throw lastError || new Error('Failed to connect to Legal Metrology Backend API (http://127.0.0.1:8000)');
 }
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    ...init,
-    headers: {
-      Accept: 'application/json',
-      ...init?.headers,
-    },
-  });
+  const headers = {
+    Accept: 'application/json',
+    ...init?.headers,
+  };
 
-  if (!res.ok) {
-    let errorDetail = `HTTP Error ${res.status}: ${res.statusText}`;
-    try {
-      const errorJson = await res.json();
-      if (errorJson.detail) {
-        errorDetail = typeof errorJson.detail === 'string' ? errorJson.detail : JSON.stringify(errorJson.detail);
-      }
-    } catch {
-      // ignore
+  let endpoint = url;
+  let isApiCall = false;
+  for (const prefix of [API_BASE, 'http://localhost:8000/api/v1', 'http://127.0.0.1:8000/api/v1', 'http://localhost:8080/api/v1', '/api/v1']) {
+    if (url.startsWith(prefix)) {
+      endpoint = url.substring(prefix.length);
+      isApiCall = true;
+      break;
     }
-    throw new Error(errorDetail);
   }
 
-  return res.json() as Promise<T>;
+  if (!isApiCall) {
+    const res = await fetch(url, {
+      ...init,
+      headers,
+    });
+    if (!res.ok) throw new Error(`HTTP Error ${res.status}: ${res.statusText}`);
+    return res.json() as Promise<T>;
+  }
+
+  const candidates: string[] = [];
+  if (process.env.NEXT_PUBLIC_API_URL) candidates.push(process.env.NEXT_PUBLIC_API_URL);
+  candidates.push('http://127.0.0.1:8000/api/v1');
+  candidates.push('http://localhost:8000/api/v1');
+  if (typeof window !== 'undefined') candidates.push('/api/v1');
+  const uniqueBases = Array.from(new Set(candidates));
+
+  let lastError: any = null;
+  for (const base of uniqueBases) {
+    const targetUrl = `${base}${endpoint}`;
+    try {
+      const res = await fetch(targetUrl, {
+        ...init,
+        headers,
+      });
+
+      if (!res.ok) {
+        let errorDetail = `HTTP Error ${res.status}: ${res.statusText}`;
+        try {
+          const errorJson = await res.json();
+          if (errorJson.detail) {
+            errorDetail = typeof errorJson.detail === 'string' ? errorJson.detail : JSON.stringify(errorJson.detail);
+          }
+        } catch {
+          // ignore
+        }
+        throw new Error(errorDetail);
+      }
+
+      return (await res.json()) as Promise<T>;
+    } catch (err: any) {
+      lastError = err;
+      if (err.message && err.message.startsWith('HTTP Error')) {
+        throw err;
+      }
+      continue;
+    }
+  }
+
+  throw lastError || new Error('Failed to connect to Legal Metrology Backend API (http://127.0.0.1:8000)');
 }
 
 export const api = {
+  // Auth
+  async login(email: string, password: string = 'demo'): Promise<any> {
+    const data = await fetchJson<any>(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    if (typeof window !== 'undefined' && data?.access_token) {
+      localStorage.setItem('token', data.access_token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+    }
+    return data;
+  },
+
   // Demo Seeding
   async seedDemoData(): Promise<any> {
     return fetchJson(`${API_BASE}/demo/seed`, {

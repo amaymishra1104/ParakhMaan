@@ -86,6 +86,19 @@ class OCRService:
 
         img = cv2.imread(image_path)
         if img is None:
+            try:
+                from PIL import Image as PILImage
+                try:
+                    import pillow_heif
+                    pillow_heif.register_heif_opener()
+                except Exception:
+                    pass
+                pil_img = PILImage.open(image_path).convert('RGB')
+                img = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
+            except Exception:
+                img = None
+
+        if img is None:
             return []
 
         orig_h, orig_w = img.shape[:2]
@@ -115,7 +128,16 @@ class OCRService:
             from concurrent.futures import ThreadPoolExecutor
             import asyncio
 
-            pil_img = PILImage.fromarray(cv2.cvtColor(enhanced_img, cv2.COLOR_BGR2RGB))
+            # Clamp dimensions for Windows Media OCR engine (max 2048px)
+            win_img = enhanced_img
+            win_h, win_w = win_img.shape[:2]
+            win_scale = min(2000.0 / win_w, 2000.0 / win_h, 1.0)
+            if win_scale < 1.0:
+                win_img = cv2.resize(enhanced_img, (int(win_w * win_scale), int(win_h * win_scale)))
+            
+            w_scale_x = orig_w / float(win_img.shape[1])
+            w_scale_y = orig_h / float(win_img.shape[0])
+            pil_img = PILImage.fromarray(cv2.cvtColor(win_img, cv2.COLOR_BGR2RGB))
 
             def _winocr_thread_worker():
                 t_loop = asyncio.new_event_loop()
@@ -136,10 +158,10 @@ class OCRService:
                     if not text_str:
                         continue
                     if line.words:
-                        bx1 = min(wrd.bounding_rect.x for wrd in line.words) * scale_x
-                        by1 = min(wrd.bounding_rect.y for wrd in line.words) * scale_y
-                        bx2 = max(wrd.bounding_rect.x + wrd.bounding_rect.width for wrd in line.words) * scale_x
-                        by2 = max(wrd.bounding_rect.y + wrd.bounding_rect.height for wrd in line.words) * scale_y
+                        bx1 = min(wrd.bounding_rect.x for wrd in line.words) * w_scale_x
+                        by1 = min(wrd.bounding_rect.y for wrd in line.words) * w_scale_y
+                        bx2 = max(wrd.bounding_rect.x + wrd.bounding_rect.width for wrd in line.words) * w_scale_x
+                        by2 = max(wrd.bounding_rect.y + wrd.bounding_rect.height for wrd in line.words) * w_scale_y
                     else:
                         bx1, by1, bx2, by2 = 0, 0, orig_w, 30
 
@@ -178,6 +200,45 @@ class OCRService:
                     ))
             if spans:
                 return [span.to_dict() for span in spans]
+        except Exception:
+            pass
+
+        # 6. Try EasyOCR (CPU-optimized, local PyTorch engine)
+        try:
+            import easyocr
+            if not hasattr(self, "_easyocr_reader") or self._easyocr_reader is None:
+                self._easyocr_reader = easyocr.Reader(['en'], gpu=False)
+
+            max_ocr_dim = 1600
+            cur_h, cur_w = enhanced_img.shape[:2]
+            scale_easy = min(max_ocr_dim / cur_w, max_ocr_dim / cur_h, 1.0)
+            if scale_easy < 1.0:
+                small_img = cv2.resize(enhanced_img, (int(cur_w * scale_easy), int(cur_h * scale_easy)))
+            else:
+                small_img = enhanced_img
+
+            results = self._easyocr_reader.readtext(cv2.cvtColor(small_img, cv2.COLOR_BGR2RGB))
+            if results:
+                spans = []
+                eff_scale_x = orig_w / float(small_img.shape[1])
+                eff_scale_y = orig_h / float(small_img.shape[0])
+                for bbox, text_str, conf in results:
+                    cleaned_txt = self._clean_ocr_text(text_str)
+                    if cleaned_txt and float(conf) > 0.15:
+                        xs = [pt[0] for pt in bbox]
+                        ys = [pt[1] for pt in bbox]
+                        x1 = min(xs) * eff_scale_x
+                        y1 = min(ys) * eff_scale_y
+                        x2 = max(xs) * eff_scale_x
+                        y2 = max(ys) * eff_scale_y
+                        spans.append(OCRSpan(
+                            text=cleaned_txt,
+                            confidence=float(conf),
+                            bbox=[x1, y1, x2, y2],
+                            image_id=image_id
+                        ))
+                if spans:
+                    return [span.to_dict() for span in spans]
         except Exception:
             pass
 

@@ -1,10 +1,12 @@
 import os
 from pathlib import Path
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env", extra="ignore")
+
     PROJECT_NAME: str = "Legal Metrology AI Compliance Platform"
     API_V1_STR: str = "/api/v1"
     VERSION: str = "1.0.0"
@@ -15,7 +17,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR}/legal_metrology.db")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR.as_posix()}/legal_metrology.db")
     
     # Storage
     STORAGE_DIR: str = os.getenv("STORAGE_DIR", str(BASE_DIR / "storage"))
@@ -48,9 +50,6 @@ class Settings(BaseSettings):
         "http://127.0.0.1:8000",
         "*"
     ]
-
-    class Config:
-        case_sensitive = True
 
 settings = Settings()
 

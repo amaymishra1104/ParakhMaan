@@ -14,10 +14,6 @@ def get_pdf_report(id: str, db: Session = Depends(get_db)):
     if not insp:
         raise HTTPException(status_code=404, detail="Inspection not found")
 
-    if insp.inspection_mode == "DEFECT":
-        from app.api.defects import get_defect_report
-        return get_defect_report(id, db)
-
     # If PDF exists, serve it, otherwise generate it
     if insp.report_path and os.path.exists(insp.report_path):
         return FileResponse(

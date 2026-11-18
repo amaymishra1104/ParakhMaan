@@ -44,3 +44,9 @@ def test_inspection_crud_and_demo():
     assert dash_res.status_code == 200
     dash_data = dash_res.json()
     assert dash_data["total_inspections"] >= 1
+
+    # 5. Test PDF Report Generation
+    report_res = client.get(f"/api/v1/inspections/{insp_id}/report")
+    assert report_res.status_code == 200
+    assert report_res.headers["content-type"] == "application/pdf"
+    assert len(report_res.content) > 1000  # valid PDF generated

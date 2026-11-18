@@ -23,12 +23,20 @@ export default function ReviewModal({
   result,
   onSubmitAction
 }: ReviewModalProps) {
-  if (!isOpen || !result) return null;
-
   const [actionType, setActionType] = useState<'CONFIRM' | 'CORRECT' | 'REJECT' | 'REQUEST_NEW_IMAGE'>('CONFIRM');
-  const [correctedValue, setCorrectedValue] = useState(result.normalized_value || result.detected_value || '');
+  const [correctedValue, setCorrectedValue] = useState('');
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    if (result) {
+      setCorrectedValue(result.normalized_value || result.detected_value || '');
+      setActionType('CONFIRM');
+      setReason('');
+    }
+  }, [result]);
+
+  if (!isOpen || !result) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -37,8 +37,21 @@ class ImageQualityAnalyzer:
                 "issues": ["Image file not found on server"]
             }
 
-        # Load image via OpenCV
+        # Load image via OpenCV with PIL / HEIF fallback
         img = cv2.imread(image_path)
+        if img is None:
+            try:
+                from PIL import Image as PILImage
+                try:
+                    import pillow_heif
+                    pillow_heif.register_heif_opener()
+                except Exception:
+                    pass
+                pil_img = PILImage.open(image_path).convert('RGB')
+                img = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
+            except Exception:
+                img = None
+
         if img is None:
             return {
                 "quality_score": 0.0,
