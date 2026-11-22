@@ -7,8 +7,11 @@ from app.schemas.all_schemas import ReviewActionRequest, ReviewActionResponse, I
 from app.services.rule_engine import rule_engine
 
 router = APIRouter(prefix="/inspections", tags=["Review Queue"])
+reviews_alias_router = APIRouter(prefix="/reviews", tags=["Review Queue"])
 
 @router.post("/{id}/review", response_model=ReviewActionResponse)
+@reviews_alias_router.post("/{id}/review", response_model=ReviewActionResponse)
+@reviews_alias_router.post("/{id}", response_model=ReviewActionResponse)
 def submit_review_action(
     id: str,
     req: ReviewActionRequest,

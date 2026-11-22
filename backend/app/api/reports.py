@@ -7,8 +7,11 @@ from app.models.all_models import Inspection
 from app.services.pdf_report_service import pdf_report_service
 
 router = APIRouter(prefix="/inspections", tags=["Reports"])
+reports_alias_router = APIRouter(prefix="/reports", tags=["Reports"])
 
 @router.get("/{id}/report")
+@reports_alias_router.get("/{id}/report")
+@reports_alias_router.get("/{id}/pdf")
 def get_pdf_report(id: str, db: Session = Depends(get_db)):
     insp = db.query(Inspection).filter(Inspection.id == id).first()
     if not insp:

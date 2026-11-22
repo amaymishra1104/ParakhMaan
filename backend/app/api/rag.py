@@ -5,7 +5,7 @@ router = APIRouter(prefix="/rag", tags=["RAG Legal Assistant"])
 
 @router.post("/ask")
 def ask_rule_book(payload: dict = Body(...)):
-    question = payload.get("question", "").strip()
+    question = (payload.get("question") or payload.get("query") or "").strip()
     if not question:
         return {"error": "Question cannot be empty", "answer": "", "citations": []}
     

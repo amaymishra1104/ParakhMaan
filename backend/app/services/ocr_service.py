@@ -55,28 +55,30 @@ class OCRService:
         """
         Applies expert contrast enhancement, unsharp masking, and CLAHE to make
         printed packaging text, dot-matrix inkjet codes, and faint labels crystal clear.
+        Optimized for Intel CPU execution with dimension clamping.
         """
         h, w = img.shape[:2]
+        max_dim = max(h, w)
         
-        # 1. Upscale if image is low-resolution for better small-font OCR
-        scale_factor = 1.0
-        if max(h, w) < 1800:
-            scale_factor = 1.5 if max(h, w) > 1000 else 2.0
-            new_w = int(w * scale_factor)
-            new_h = int(h * scale_factor)
-            img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_CUBIC)
+        # 1. Clamp large images (e.g. 4000x3000) to max 1600px for CPU optimization
+        if max_dim > 1600:
+            scale = 1600.0 / float(max_dim)
+            img = cv2.resize(img, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
+        elif max_dim < 1000:
+            scale = 1.5 if max_dim > 600 else 2.0
+            img = cv2.resize(img, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_CUBIC)
 
         # 2. Convert to LAB color space and apply CLAHE to L channel
         lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
         l, a, b = cv2.split(lab)
-        clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
         cl = clahe.apply(l)
         enhanced_lab = cv2.merge((cl, a, b))
         enhanced_bgr = cv2.cvtColor(enhanced_lab, cv2.COLOR_LAB2BGR)
 
         # 3. Mild unsharp mask to crisp up text edges
         gaussian = cv2.GaussianBlur(enhanced_bgr, (0, 0), 2.0)
-        unsharp = cv2.addWeighted(enhanced_bgr, 1.35, gaussian, -0.35, 0)
+        unsharp = cv2.addWeighted(enhanced_bgr, 1.25, gaussian, -0.25, 0)
 
         return unsharp
 
