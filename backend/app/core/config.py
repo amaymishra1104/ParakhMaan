@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(case_sensitive=True, env_file=".env", extra="ignore")
 
-    PROJECT_NAME: str = "Legal Metrology AI Compliance Platform"
+    PROJECT_NAME: str = "ParakhMaan AI Compliance & Inspection Platform"
     API_V1_STR: str = "/api/v1"
     VERSION: str = "1.0.0"
     

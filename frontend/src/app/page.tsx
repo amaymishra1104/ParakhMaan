@@ -14,17 +14,20 @@ export default function HomePage() {
       <div className="bg-gradient-to-br from-white via-slate-50 to-blue-50/40 rounded-2xl border border-[#e6e6e6] p-8 sm:p-12 shadow-sm text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-blue-100/80 text-[#0075de] border border-blue-200 mb-6">
           <Shield className="w-3.5 h-3.5" />
-          <span>Smart India Hackathon 2026 • Problem Statement SIH26034</span>
+          <span>PARAKHMAAN (परखमान) • LEGAL METROLOGY & QUALITY INSPECTION AI</span>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#000000] max-w-3xl mx-auto leading-tight">
-          AI-Powered Legal Metrology Compliance & Inspection Platform
+        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-[#000000] max-w-3xl mx-auto leading-tight">
+          ParakhMaan
+          <span className="block text-xl sm:text-2xl font-bold text-[#0075de] mt-2">
+            AI-Powered Legal Metrology Compliance & Inspection Platform
+          </span>
         </h1>
 
         <p className="text-sm text-[#615d59] max-w-2xl mx-auto mt-4 leading-relaxed">
           Statutory inspection & automated auditing system for Packaged Commodities Rules (2011).
           Built with deterministic legal engines, dual-path vision OCR, multi-surface contradiction detection,
-          and tamper-evident statutory PDF report generation.
+          industrial defect quality gates, and tamper-evident statutory PDF report generation.
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-3 mt-8">

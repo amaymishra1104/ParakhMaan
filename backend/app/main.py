@@ -12,8 +12,8 @@ Base.metadata.create_all(bind=engine)
 run_lightweight_migrations()
 
 app = FastAPI(
-    title="Legal Metrology AI Compliance Platform",
-    description="AI-Powered Legal Metrology Compliance & Inspection Platform (SIH26034) with a separate AI & Computer-Vision Product Defect Inspection mode",
+    title="ParakhMaan — AI Legal Metrology & Quality Inspection Platform",
+    description="ParakhMaan (परखमान): AI-Powered Legal Metrology Compliance & Inspection Platform with Computer-Vision Product Defect Inspection (SIH26034)",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
@@ -60,7 +60,7 @@ def health_check():
     detector = defects.defect_detector.status()
     return {
         "status": "healthy",
-        "service": "Legal Metrology AI Compliance Platform",
+        "service": "ParakhMaan AI Compliance & Inspection Platform",
         "version": settings.VERSION,
         "rule_engine": "ACTIVE (40+ Statutory Rules)",
         "defect_detector": f"ACTIVE ({detector['backend']}, model {'loaded' if detector['model_loaded'] else 'not loaded'})",

@@ -48,17 +48,17 @@ export default function LoginPage() {
           <Shield className="w-8 h-8" />
         </div>
         <h1 className="text-xl font-bold tracking-tight text-[#000000]">
-          Legal Metrology Officer Portal
+          ParakhMaan Officer Portal
         </h1>
         <p className="text-xs text-[#615d59] mt-1">
           Government of India • Ministry of Consumer Affairs, Food & Public Distribution
         </p>
         <div className="flex items-center justify-center gap-2 mt-2">
           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#0075de] border border-blue-200">
-            PCR 2011 Enforcement
+            ParakhMaan AI
           </span>
           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-50 text-[#166534] border border-green-200">
-            SIH26034 v2.4
+            PCR 2011 Verified
           </span>
         </div>
       </div>

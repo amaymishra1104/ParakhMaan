@@ -3,8 +3,8 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 
 export const metadata: Metadata = {
-  title: 'Legal Metrology AI Compliance Platform | SIH26034',
-  description: 'AI-Powered Legal Metrology Compliance & Inspection Platform for Packaged Commodities Rules 2011',
+  title: 'ParakhMaan | AI Legal Metrology & Quality Inspection Platform',
+  description: 'ParakhMaan (परखमान): AI-Powered Legal Metrology Compliance & Industrial Quality Inspection Platform for Packaged Commodities Rules 2011',
 };
 
 export default function RootLayout({
@@ -20,7 +20,7 @@ export default function RootLayout({
           {children}
         </main>
         <footer className="bg-white border-t border-[#e6e6e6] py-6 text-center text-xs text-[#615d59]">
-          <p>© 2026 Department of Consumer Affairs • Legal Metrology Division • SIH26034 Platform</p>
+          <p>© 2026 ParakhMaan Platform • Legal Metrology Division & Industrial Quality Intelligence • SIH26034</p>
         </footer>
       </body>
     </html>

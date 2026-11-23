@@ -66,19 +66,19 @@ export default function Navbar() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-[#000000] tracking-tight">
-                    {isDefectMode ? 'Defect Inspection AI' : 'Legal Metrology AI'}
+                  <span className="font-extrabold text-base text-[#000000] tracking-tight">
+                    ParakhMaan
                   </span>
                   <span
-                    className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-[#f6f5f4] border border-[#e6e6e6] ${
+                    className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-[#f6f5f4] border border-[#e6e6e6] ${
                       isDefectMode ? 'text-[#6b21a8]' : 'text-[#0075de]'
                     }`}
                   >
-                    {isDefectMode ? 'CV Mode' : 'SIH26034'}
+                    {isDefectMode ? 'Quality Inspection' : 'Legal Metrology'}
                   </span>
                 </div>
                 <p className="text-xs text-[#615d59]">
-                  {isDefectMode ? 'Manufacturing • Surface & Product QC' : 'Govt of India • Compliance Platform'}
+                  {isDefectMode ? 'Manufacturing • Surface & Packaging QC' : 'Govt of India • Compliance Platform'}
                 </p>
               </div>
             </div>
